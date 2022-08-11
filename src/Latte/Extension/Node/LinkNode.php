@@ -13,13 +13,15 @@ final class LinkNode extends NetteLinkNode
 		if (in_array($this->mode, ['href', 'phref'], true)) {
 			$context->beginEscape()->enterHtmlAttribute(null, '"');
 			$res = $context->format(
-				'echo \' href="\';'
+				'$ʟ_destination = %node;'
+				. '$ʟ_method = is_string($ʟ_destination) ? "link" : "linkToAction";'
+				. 'echo \' href="\';'
 				. 'echo %modify('
 				. ($this->mode === 'phref' ? '$this->global->uiPresenter' : '$this->global->uiControl')
-				. '->linkToAction(%node, %node?)) %line;'
+				. '->$ʟ_method($ʟ_destination, %node?)) %line;'
 				. 'echo \'"\';',
-				$this->modifier,
 				$this->destination,
+				$this->modifier,
 				$this->args,
 				$this->position,
 			);
@@ -28,11 +30,13 @@ final class LinkNode extends NetteLinkNode
 		}
 
 		return $context->format(
-			'echo %modify('
+			'$ʟ_destination = %node;'
+			. '$ʟ_method = is_string($ʟ_destination) ? "link" : "linkToAction";'
+			. 'echo %modify('
 			. ($this->mode === 'plink' ? '$this->global->uiPresenter' : '$this->global->uiControl')
-			. '->linkToAction(%node, %node?)) %line;',
-			$this->modifier,
+			. '->$ʟ_method($ʟ_destination, %node?)) %line;',
 			$this->destination,
+			$this->modifier,
 			$this->args,
 			$this->position,
 		);
