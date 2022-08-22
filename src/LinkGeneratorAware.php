@@ -5,6 +5,6 @@ namespace WebChemistry\Link;
 interface LinkGeneratorAware
 {
 
-	public function setLinkGenerator(LinkGenerator $linkGenerator);
+	public function setLinkGenerator(LinkGenerator $linkGenerator): void;
 
 }

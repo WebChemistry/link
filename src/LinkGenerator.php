@@ -3,6 +3,7 @@
 namespace WebChemistry\Link;
 
 use Nette\Application\LinkGenerator as NetteLinkGenerator;
+use Nette\Application\UI\InvalidLinkException;
 use Typertion\Php\TypeAssert;
 use WebChemistry\Link\Exception\NoHandlerException;
 
@@ -26,7 +27,10 @@ final class LinkGenerator
 		}
 	}
 
-	public function link(string|object $destination, mixed ... $parameters): string
+	/**
+	 * @throws InvalidLinkException
+	 */
+	public function link(object $destination, mixed ... $parameters): string
 	{
 		$link = $destination instanceof ActionLink ? $destination : $this->createActionLink($destination, $parameters);
 
@@ -48,39 +52,33 @@ final class LinkGenerator
 	/**
 	 * @param mixed[] $parameters
 	 */
-	public function createActionLink(string|object $dest, array $parameters = []): ActionLink
+	public function createActionLink(object $dest, array $parameters = []): ActionLink
 	{
-		if (is_object($dest)) {
-			if ($dest instanceof ActionLink) {
-				return $dest;
+		if ($dest instanceof ActionLink) {
+			return $dest;
+		}
+
+		$action = TypeAssert::stringOrNull($parameters[0] ?? null, 'action parameter');
+		$link = null;
+
+		foreach ($this->factories as $factory) {
+			if ($link = $factory->create($dest, $action, $parameters)) {
+				break;
 			}
+		}
 
-			$action = TypeAssert::stringOrNull($parameters[0] ?? null, 'action parameter');
-			$link = null;
+		if (!$link) {
+			throw new NoHandlerException(
+				sprintf(
+					'No handler for "%s" and %s.',
+					$dest::class,
+					$action ? sprintf('action "%s"', $action) : 'empty action',
+				),
+			);
+		}
 
-			foreach ($this->factories as $factory) {
-				if ($link = $factory->create($dest, $action, $parameters)) {
-					break;
-				}
-			}
-
-			if (!$link) {
-				throw new NoHandlerException(
-					sprintf(
-						'No handler for "%s" and %s.',
-						$dest::class,
-						$action ? sprintf('action "%s"', $action) : 'empty action',
-					),
-				);
-			}
-
-			foreach ($this->decorators as $decorator) {
-				$link = $decorator->decorate($link, $parameters);
-			}
-
-		} else {
-			$link = new StringActionLink($dest, ... $parameters);
-
+		foreach ($this->decorators as $decorator) {
+			$link = $decorator->decorate($link, $parameters);
 		}
 
 		return $link;

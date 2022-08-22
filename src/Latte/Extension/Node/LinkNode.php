@@ -2,8 +2,11 @@
 
 namespace WebChemistry\Link\Latte\Extension\Node;
 
+use DomainException;
 use Latte\Compiler\PrintContext;
+use Nette\Application\UI\Component;
 use Nette\Bridges\ApplicationLatte\Nodes\LinkNode as NetteLinkNode;
+use WebChemistry\Link\UI\ActionLinkComponent;
 
 final class LinkNode extends NetteLinkNode
 {
@@ -13,15 +16,13 @@ final class LinkNode extends NetteLinkNode
 		if (in_array($this->mode, ['href', 'phref'], true)) {
 			$context->beginEscape()->enterHtmlAttribute(null, '"');
 			$res = $context->format(
-				'$ʟ_destination = %node;'
-				. '$ʟ_method = is_string($ʟ_destination) ? "link" : "linkToAction";'
-				. 'echo \' href="\';'
-				. 'echo %modify('
-				. ($this->mode === 'phref' ? '$this->global->uiPresenter' : '$this->global->uiControl')
-				. '->$ʟ_method($ʟ_destination, %node?)) %line;'
-				. 'echo \'"\';',
-				$this->destination,
+				<<<'XX'
+						echo ' href="'; echo %modify(%raw::createLink(%raw, %node, %node?)) %line; echo '"';
+					XX,
 				$this->modifier,
+				self::class,
+				$this->mode === 'phref' ? '$this->global->uiPresenter' : '$this->global->uiControl',
+				$this->destination,
 				$this->args,
 				$this->position,
 			);
@@ -30,16 +31,37 @@ final class LinkNode extends NetteLinkNode
 		}
 
 		return $context->format(
-			'$ʟ_destination = %node;'
-			. '$ʟ_method = is_string($ʟ_destination) ? "link" : "linkToAction";'
-			. 'echo %modify('
-			. ($this->mode === 'plink' ? '$this->global->uiPresenter' : '$this->global->uiControl')
-			. '->$ʟ_method($ʟ_destination, %node?)) %line;',
-			$this->destination,
+			'echo %modify(%raw::createLink(%raw, %node, %node?)) %line;',
 			$this->modifier,
+			self::class,
+			$this->mode === 'plink' ? '$this->global->uiPresenter' : '$this->global->uiControl',
+			$this->destination,
 			$this->args,
 			$this->position,
 		);
+	}
+
+	/**
+	 * @internal
+	 * @param mixed[] $arguments
+	 */
+	public static function createLink(Component $component, string|object $destination, array $arguments = []): string
+	{
+		if (is_object($destination) && $component instanceof ActionLinkComponent) {
+			return $component->linkToAction($destination, ... $arguments);
+		}
+
+		if (is_object($destination)) {
+			throw new DomainException(
+				sprintf(
+					'Destination is object, but component %s does not implements %s.',
+					$component::class,
+					ActionLinkComponent::class
+				)
+			);
+		}
+
+		return $component->link($destination, $arguments);
 	}
 
 }

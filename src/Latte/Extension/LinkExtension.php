@@ -8,6 +8,7 @@ use Latte\Compiler\Tag;
 use Latte\Compiler\TemplateParser;
 use Latte\Extension;
 use stdClass;
+use WebChemistry\Link\Latte\Extension\Node\IfLinkNode;
 use WebChemistry\Link\Latte\Extension\Node\LinkNode;
 
 final class LinkExtension extends Extension

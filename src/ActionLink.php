@@ -21,6 +21,9 @@ class ActionLink
 		$this->parameters = $parameters;
 	}
 
+	/**
+	 * @param mixed[] $context
+	 */
 	public static function createWithContext(string $destination, array $context, mixed ...$parameters): static
 	{
 		$static = new static($destination, ...$parameters);
