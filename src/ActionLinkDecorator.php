@@ -5,9 +5,6 @@ namespace WebChemistry\Link;
 interface ActionLinkDecorator
 {
 
-	/**
-	 * @param mixed[] $parameters
-	 */
-	public function decorate(ActionLink $link, array $parameters = []): ActionLink;
+	public function decorate(ActionLink $link): ActionLink;
 
 }

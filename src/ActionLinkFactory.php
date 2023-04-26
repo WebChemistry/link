@@ -6,8 +6,8 @@ interface ActionLinkFactory
 {
 
 	/**
-	 * @param mixed[] $parameters
+	 * @param mixed[] $arguments
 	 */
-	public function create(object $object, ?string $action, array $parameters): ?ActionLink;
+	public function create(object $object, ?string $action, array $arguments): ?ActionLink;
 
 }

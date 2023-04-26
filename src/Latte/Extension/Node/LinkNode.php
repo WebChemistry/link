@@ -48,7 +48,15 @@ final class LinkNode extends NetteLinkNode
 	public static function createLink(Component $component, string|object $destination, array $arguments = []): string
 	{
 		if (is_object($destination) && $component instanceof ActionLinkComponent) {
-			return $component->linkToAction($destination, ... $arguments);
+			$action = $arguments[0] ?? null;
+
+			if (is_string($action) || $action === null) {
+				unset($arguments[0]);
+			} else {
+				$action = null;
+			}
+
+			return $component->linkToAction($destination, $action, $arguments);
 		}
 
 		if (is_object($destination)) {

@@ -17,33 +17,26 @@ trait LinkToActionTrait
 	/**
 	 * @return never
 	 */
-	public function redirectToAction(object $destination, mixed ... $arguments): void
+	public function redirectToAction(object $destination, ?string $action = null, mixed ... $arguments): void
 	{
-		$link = $this->_linkGenerator->createActionLink($destination, $this->parseArguments($arguments));
+		$arguments['creator'] = $this;
+
+		$link = $this->_linkGenerator->createActionLink($destination, $action, ... $arguments);
 		$destination = ':' . $link->getDestination();
 		$destination = ($link->isAbsolute() ? '//' : '') . $destination;
 
 		$this->getPresenter()->redirect($destination, $link->getParameters());
 	}
 
-	public function linkToAction(object $destination, mixed ... $arguments): string
+	public function linkToAction(object $destination, ?string $action = null, mixed ... $arguments): string
 	{
-		$link = $this->_linkGenerator->createActionLink($destination, $this->parseArguments($arguments));
+		$arguments['creator'] = $this;
+
+		$link = $this->_linkGenerator->createActionLink($destination, $action, ... $arguments);
 		$destination = ':' . $link->getDestination();
 		$destination = ($link->isAbsolute() ? '//' : '') . $destination;
 
 		return $this->getPresenter()->link($destination, $link->getParameters());
-	}
-
-	/**
-	 * @param mixed[] $arguments
-	 * @return mixed[]
-	 */
-	private function parseArguments(array $arguments): array
-	{
-		return count($arguments) === 1 && isset($arguments[0]) && is_array($arguments[0])
-			? $arguments[0]
-			: $arguments;
 	}
 
 }

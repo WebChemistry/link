@@ -4,7 +4,6 @@ namespace WebChemistry\Link;
 
 use Nette\Application\LinkGenerator as NetteLinkGenerator;
 use Nette\Application\UI\InvalidLinkException;
-use Typertion\Php\TypeAssert;
 use WebChemistry\Link\Exception\NoHandlerException;
 
 final class LinkGenerator
@@ -30,9 +29,9 @@ final class LinkGenerator
 	/**
 	 * @throws InvalidLinkException
 	 */
-	public function link(object $destination, mixed ... $parameters): string
+	public function link(object $destination, ?string $action = null, mixed ... $arguments): string
 	{
-		$link = $destination instanceof ActionLink ? $destination : $this->createActionLink($destination, $parameters);
+		$link = $this->createActionLink($destination, $action, ... $arguments);
 
 		return $this->linkGenerator->link($link->getDestination(), $link->getParameters());
 	}
@@ -49,20 +48,16 @@ final class LinkGenerator
 		);
 	}
 
-	/**
-	 * @param mixed[] $parameters
-	 */
-	public function createActionLink(object $dest, array $parameters = []): ActionLink
+	public function createActionLink(object $destination, ?string $action = null, mixed ... $arguments): ActionLink
 	{
-		if ($dest instanceof ActionLink) {
-			return $dest;
+		if ($destination instanceof ActionLink) {
+			return $this->decorate($destination);
 		}
 
-		$action = TypeAssert::stringOrNull($parameters[0] ?? null, 'action parameter');
 		$link = null;
 
 		foreach ($this->factories as $factory) {
-			if ($link = $factory->create($dest, $action, $parameters)) {
+			if ($link = $factory->create($destination, $action, $arguments)) {
 				break;
 			}
 		}
@@ -71,14 +66,19 @@ final class LinkGenerator
 			throw new NoHandlerException(
 				sprintf(
 					'No handler for "%s" and %s.',
-					$dest::class,
+					$destination::class,
 					$action ? sprintf('action "%s"', $action) : 'empty action',
 				),
 			);
 		}
 
+		return $this->decorate($link);
+	}
+
+	private function decorate(ActionLink $link): ActionLink
+	{
 		foreach ($this->decorators as $decorator) {
-			$link = $decorator->decorate($link, $parameters);
+			$link = $decorator->decorate($link);
 		}
 
 		return $link;

@@ -5,34 +5,29 @@ namespace WebChemistry\Link;
 class ActionLink
 {
 
-	/** @var mixed[] */
-	private array $parameters;
-
 	private bool $absolute = false;
 
-	/** @var mixed[] */
-	private array $context = [];
-
-	final public function __construct(
-		private string $destination,
-		mixed ... $parameters,
-	)
-	{
-		$this->parameters = $parameters;
-	}
-
 	/**
+	 * @param mixed[] $parameters
 	 * @param mixed[] $context
 	 */
-	public static function createWithContext(string $destination, array $context, mixed ...$parameters): static
+	final public function __construct(
+		private string $destination,
+		private array $parameters = [],
+		private array $context = [],
+	)
 	{
-		$static = new static($destination, ...$parameters);
-		$static->context = $context;
-
-		return $static;
 	}
 
-	public function withParameter(string $name, mixed $value): static
+	public function withContext(string|int $name, mixed $value): static
+	{
+		$clone = clone $this;
+		$clone->context[$name] = $value;
+
+		return $clone;
+	}
+
+	public function withParameter(string|int $name, mixed $value): static
 	{
 		$clone = clone $this;
 		$clone->parameters[$name] = $value;
