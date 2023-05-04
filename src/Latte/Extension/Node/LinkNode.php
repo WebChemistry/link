@@ -56,7 +56,7 @@ final class LinkNode extends NetteLinkNode
 				$action = null;
 			}
 
-			return $component->linkToAction($destination, $action, $arguments);
+			return $component->linkToAction($destination, $action, ... $arguments);
 		}
 
 		if (is_object($destination)) {
